@@ -1,0 +1,48 @@
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    margin: 0;
+    background: #f8f8f8;
+}
+
+header, footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 2rem;
+}
+
+.products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.product {
+    text-decoration: none;
+    color: black;
+    background: white;
+    border-radius: 8px;
+    width: calc(33% - 1rem);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+    .product img {
+        width: 100%;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .product .info {
+        padding: 1rem;
+    }
+
+.product-detail img {
+    width: 100%;
+    max-width: 500px;
+}

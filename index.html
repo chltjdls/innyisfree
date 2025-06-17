@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
     <title>Inny is Free</title>
     <style>
         * {
@@ -32,7 +36,7 @@
         .logo {
             font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: #14272F;
         }
 
         .nav-menu {
@@ -42,7 +46,7 @@
 
             .nav-menu a {
                 text-decoration: none;
-                color: #333;
+                color: #14272F;
                 font-weight: 500;
                 transition: color 0.3s;
             }
@@ -57,7 +61,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: white;
             text-align: center;
             padding-top: 80px;
@@ -79,7 +83,7 @@
         .cta-button {
             padding: 15px 30px;
             background-color: #fff;
-            color: #6e8efb;
+            color: #162B32;
             border: none;
             border-radius: 30px;
             font-size: 1.2rem;
@@ -199,10 +203,17 @@
             }
 
         .stats {
-            padding: 100px 5%;
-            background: linear-gradient(135deg, #a777e3, #6e8efb);
+            width: 100%;
+            height: 300px;
+            position: relative;
+            background: linear-gradient(135deg, #5f72be, #9bafd9);
             color: white;
-            text-align: center;
+        }
+
+        #pollock-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
         }
 
         .stats-container {
@@ -212,21 +223,6 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-
-        .stat-item {
-            margin: 20px;
-            animation: fadeInUp 1s ease;
-        }
-
-            .stat-item h3 {
-                font-size: 3rem;
-                margin-bottom: 10px;
-            }
-
-            .stat-item p {
-                font-size: 1.2rem;
-                opacity: 0.8;
-            }
 
         .footer {
             background-color: #333;
@@ -281,11 +277,10 @@
     <header class="header">
         <div class="logo">Welcom To INNY Wolrd!</div>
         <nav class="nav-menu">
-            <a href="#">홈</a>
-            <a href="#">서비스</a>
-            <a href="#">갤러리</a>
-            <a href="#">소개</a>
-            <a href="#">문의</a>
+            <a href="#">HOME</a>
+            <a href="#">ABOUT</a>
+            <a href="#">GALLERY</a>
+            <a href="#">INTRODUCE</a>
         </nav>
     </header>
 
@@ -337,28 +332,14 @@
     </section>
 
     <section class="stats">
+        <h2 style='text-align:center;'>FREE PAINT ZONE</h2>
         <div class="stats-container">
-            <div class="stat-item">
-                <h3>1,000+</h3>
-                <p>살아온 인생</p>
-            </div>
-            <div class="stat-item">
-                <h3>500+</h3>
-                <p>완료된 프로젝트</p>
-            </div>
-            <div class="stat-item">
-                <h3>50+</h3>
-                <p>수상 경력</p>
-            </div>
-            <div class="stat-item">
-                <h3>24/7</h3>
-                <p>고객 지원</p>
-            </div>
+            <canvas id="pollock-canvas"></canvas>
         </div>
     </section>
 
     <footer class="footer">
-        <div class="logo">브랜드명</div>
+        <div class="logo" style="color:white;">INNY WORLD</div>
         <div class="social-icons">
             <a href="https://blog.naver.com/sein0917"><i class="fas fa-blog"></i></a>
             <a href="mailto:sein0917@naver.com"><i class="fas fa-envelope"></i></a>
@@ -368,10 +349,6 @@
         <p>&copy; 2025 Innyisfree. All rights reserved.</p>
     </footer>
 
-    <!-- Font Awesome 아이콘 사용을 위한 CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- 구글 폰트 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script>
         const button = document.querySelector('.cta-button');
         const popup = document.getElementById('popup');
@@ -386,6 +363,95 @@
             popup.style.display = 'none';
             overlay.style.display = 'none';
         }
+    </script>
+    <script>
+        const canvas = document.getElementById('pollock-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const statsSection = document.querySelector('.stats');
+            canvas.width = statsSection.offsetWidth;
+            canvas.height = statsSection.offsetHeight;
+        }
+
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        let lastX = 0;
+        let lastY = 0;
+        let isFirstMove = true; 
+
+        function getRandomColor() {
+            const colors = ['#D92B2B', '#2B4BD9', '#D9D12B', '#000000', '#FFFFFF'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function getRandomLineWidth() {
+            return Math.random() * 10 + 2; 
+        }
+
+        function draw(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isFirstMove) {
+                lastX = x;
+                lastY = y;
+                isFirstMove = false;
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+
+            const controlX = lastX + (Math.random() * 40 - 20);
+            const controlY = lastY + (Math.random() * 40 - 20);
+            ctx.quadraticCurveTo(controlX, controlY, x, y);
+
+            ctx.strokeStyle = getRandomColor();
+            ctx.lineWidth = getRandomLineWidth();
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            if (Math.random() > 0.7) {
+                ctx.beginPath();
+                ctx.arc(x, y, Math.random() * 8 + 2, 0, Math.PI * 2);
+                ctx.fillStyle = getRandomColor();
+                ctx.fill();
+            }
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function resetFirstMove() {
+            isFirstMove = true;
+        }
+
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseout', resetFirstMove);
+
+        // 터치 이벤트 지원 (모바일)
+        canvas.addEventListener('touchmove', function (e) {
+            e.preventDefault(); // 스크롤 방지
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        canvas.addEventListener('touchend', resetFirstMove);
+
+        function init() {
+            resizeCanvas();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>

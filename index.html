@@ -2,165 +2,390 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>서인이는 자유에요</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inny is Free</title>
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f5f5f5;
         }
 
-        header {
-            background-color: #333;
-            color: white;
-            padding: 1rem 2rem;
+        body {
+            overflow-x: hidden;
+            background-color: #f8f8f8;
+        }
+
+        .header {
+            background-color: #fff;
+            padding: 20px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-            header h1 {
-                margin: 0;
-                font-size: 1.5rem;
-            }
-
-        nav a {
-            color: white;
-            margin-left: 1rem;
-            text-decoration: none;
-        }
-
-        .banner {
+            position: fixed;
             width: 100%;
-            height: 300px;
-            background: url('https://via.placeholder.com/1200x300?text=Welcome+to+Our+Shop') center;
-            background-size: cover;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 24px;
             font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            color: #333;
         }
 
-        .product-section {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-            .product-section h2 {
-                margin-bottom: 1rem;
-            }
-
-        .products {
+        .nav-menu {
             display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
+            gap: 20px;
         }
 
-        .product {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: calc(33.333% - 1rem);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-
-            .product:hover {
-                transform: translateY(-5px);
+            .nav-menu a {
+                text-decoration: none;
+                color: #333;
+                font-weight: 500;
+                transition: color 0.3s;
             }
 
-            .product img {
-                width: 100%;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-            }
-
-            .product .info {
-                padding: 1rem;
-            }
-
-                .product .info h3 {
-                    margin: 0 0 0.5rem;
+                .nav-menu a:hover {
+                    color: #0066ff;
                 }
 
-                .product .info p {
-                    margin: 0;
-                    color: #555;
-                }
-
-        footer {
-            background: #222;
-            color: #ccc;
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
             text-align: center;
-            padding: 1.5rem;
-            margin-top: 3rem;
-            font-size: 0.9rem;
+            padding-top: 80px;
+        }
+
+            .hero h1 {
+                font-size: 4rem;
+                margin-bottom: 20px;
+                animation: fadeInUp 1s ease;
+            }
+
+            .hero p {
+                font-size: 1.5rem;
+                margin-bottom: 30px;
+                max-width: 800px;
+                animation: fadeInUp 1.2s ease;
+            }
+
+        .cta-button {
+            padding: 15px 30px;
+            background-color: #fff;
+            color: #6e8efb;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 1.4s ease;
+        }
+
+            .cta-button:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            }
+
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            text-align: center;
+            max-width: 300px;
+        }
+
+            .popup p {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+
+        .close-button {
+            padding: 10px 20px;
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+            .close-button:hover {
+                background-color: #e55b5b;
+            }
+
+        .features {
+            padding: 100px 5%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-10px);
+            }
+
+            .feature-card h3 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+                color: #333;
+            }
+
+            .feature-card p {
+                color: #666;
+                line-height: 1.6;
+            }
+
+        .gallery {
+            padding: 50px 5%;
+            background-color: #f0f0f0;
+        }
+
+            .gallery h2 {
+                text-align: center;
+                font-size: 2.5rem;
+                margin-bottom: 50px;
+                color: #333;
+            }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            height: 250px;
+            background-color: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .gallery-item img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.5s;
+            }
+
+            .gallery-item:hover img {
+                transform: scale(1.1);
+            }
+
+        .stats {
+            padding: 100px 5%;
+            background: linear-gradient(135deg, #a777e3, #6e8efb);
+            color: white;
+            text-align: center;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            margin: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+            .stat-item h3 {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .stat-item p {
+                font-size: 1.2rem;
+                opacity: 0.8;
+            }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 50px 5%;
+            text-align: center;
+        }
+
+        .social-icons {
+            margin: 20px 0;
+        }
+
+            .social-icons a {
+                color: white;
+                margin: 0 10px;
+                font-size: 1.5rem;
+                transition: color 0.3s;
+            }
+
+                .social-icons a:hover {
+                    color: #6e8efb;
+                }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {
-            .product {
-                width: calc(50% - 1rem);
+            .hero h1 {
+                font-size: 2.5rem;
             }
-        }
 
-        @media (max-width: 480px) {
-            .product {
-                width: 100%;
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .nav-menu {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>서인이의 홈페이지랍니다?</h1>
-        <nav>
+    <header class="header">
+        <div class="logo">Welcom To INNY Wolrd!</div>
+        <nav class="nav-menu">
             <a href="#">홈</a>
-            <a href="#">상품</a>
-            <a href="#">장바구니</a>
-            <a href="#">로그인</a>
+            <a href="#">서비스</a>
+            <a href="#">갤러리</a>
+            <a href="#">소개</a>
+            <a href="#">문의</a>
         </nav>
     </header>
 
-    <div class="banner">
-        쇼핑을 시작해보세요!
+    <section class="hero">
+        <h1>안녕하세요?!</h1>
+        <p>아래 버튼을 눌러보세요</p>
+        <button class="cta-button">지금 시작하기</button>
+    </section>
+
+    <div class="popup-overlay" id="popupOverlay"></div>
+    <div class="popup" id="popup">
+        <p>누르라고 진짜 누르네 ㅋㅋ</p>
+        <button class="close-button" onclick="closePopup()">닫기</button>
     </div>
 
-    <section class="product-section">
-        <h2>인기 상품</h2>
-        <div class="products">
-            <div class="product">
-                <img src="img/hat.png" alt="상품1">
-                <div class="info">
-                    <h3>예쁜 티셔츠</h3>
-                    <p>₩19,900</p>
-                </div>
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-card">
+                <h3>MBTI : ESTJ</h3>
+                <p>추구미는 ISFP. 하아=33 집가고싶다</p>
             </div>
-            <div class="product">
-                <img src="https://via.placeholder.com/300x200?text=상품2" alt="상품2">
-                <div class="info">
-                    <h3>데일리 가방</h3>
-                    <p>₩34,500</p>
-                </div>
+            <div class="feature-card">
+                <h3>나름 홈페이지 같나?</h3>
+                <p>요즘 그지같은 티셔츠 파는 쇼핑몰 많던데 나도 해볼까</p>
             </div>
-            <div class="product">
-                <img src="https://via.placeholder.com/300x200?text=상품3" alt="상품3">
-                <div class="info">
-                    <h3>여름 샌들</h3>
-                    <p>₩27,000</p>
-                </div>
+            <div class="feature-card">
+                <h3>여름 휴가 계획</h3>
+                <p>빨리 여름 휴가 보내주라 이말입니다.</p>
             </div>
         </div>
     </section>
 
-    <footer>
-        &copy; 2025 INNY0917. All rights reserved.
+    <section class="gallery">
+        <h2>갤러리</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="./img/coding_dobby.png" alt="불쌍한 도비">
+            </div>
+            <div class="gallery-item">
+                <img src="./img/free_dobby.jpg" alt="불쌍한 도비">
+            </div>
+            <div class="gallery-item">
+                <img src="./img/company.jpg" alt="불쌍한 도비">
+            </div>
+            <div class="gallery-item">
+                <img src="./img/fuck.png" alt="불쌍한 도비">
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-item">
+                <h3>1,000+</h3>
+                <p>살아온 인생</p>
+            </div>
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>완료된 프로젝트</p>
+            </div>
+            <div class="stat-item">
+                <h3>50+</h3>
+                <p>수상 경력</p>
+            </div>
+            <div class="stat-item">
+                <h3>24/7</h3>
+                <p>고객 지원</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="logo">브랜드명</div>
+        <div class="social-icons">
+            <a href="https://blog.naver.com/sein0917"><i class="fas fa-blog"></i></a>
+            <a href="mailto:sein0917@naver.com"><i class="fas fa-envelope"></i></a>
+            <a href="https://www.instagram.com/inny__0917/"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.youtube.com/@inny_0917"><i class="fab fa-youtube"></i></a>
+        </div>
+        <p>&copy; 2025 Innyisfree. All rights reserved.</p>
     </footer>
 
+    <!-- Font Awesome 아이콘 사용을 위한 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- 구글 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        const button = document.querySelector('.cta-button');
+        const popup = document.getElementById('popup');
+        const overlay = document.getElementById('popupOverlay');
+
+        button.addEventListener('click', () => {
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        });
+
+        function closePopup() {
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>최서인의 전국 맛도리 지도</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .map-area {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .category-box {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-container {
+            margin-top: 30px;
+            max-width: 600px;
+        }
+
+        .restaurant {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        img {
+            width: 500px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍽 최서인의 전국 맛도리 지도</h1>
+
+    <div class="map-area">
+        <!-- 지도 -->
+        <div>
+            <img src="./img/map.png" usemap="#koreaMap" alt="대한민국 지도">
+            <map name="koreaMap">
+                <!-- 예시: data-region 속성만 유지 -->
+                <area shape="poly" coords="228,220,209,216,208,204,228,194,253,206,255,214" alt="서울" title="서울" data-region="seoul">
+                <area shape="poly" coords="220,715,229,688,188,672,126,703,148,734" alt="제주도" title="제주도" data-region="jeju">
+                <!-- ... 이 아래는 사용자가 만든 영역 전부 붙여넣기 ... -->
+            </map>
+        </div>
+
+        <!-- 카테고리 -->
+        <div class="category-box" id="category-box">
+            <label for="category"><strong>카테고리 선택</strong></label>
+            <select id="category" onchange="applyCategory()">
+                <option value="">전체</option>
+                <option value="korean">한식</option>
+                <option value="chinese">중식</option>
+                <option value="japanese">일식</option>
+                <option value="snack">분식</option>
+                <option value="cafe">카페</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 리스트 -->
+    <div class="list-container">
+        <h2 id="region-name">지역을 선택해주세요</h2>
+        <div id="restaurant-list"></div>
+    </div>
+
+    <script>
+        const regionNames = {
+            seoul: "서울",
+            incheon: "인천",
+            gyeonggi: "경기도",
+            gangwon: "강원도",
+            chungnam: "충청남도",
+            chungbuk: "충청북도",
+            daejeon: "대전",
+            jeonbuk: "전라북도",
+            jeonnam: "전라남도",
+            gwangju: "광주",
+            busan: "부산",
+            ulsan: "울산",
+            daegu: "대구",
+            gyeongnam: "경상남도",
+            gyeongbuk: "경상북도",
+            jeju: "제주도"
+        };
+
+        const data = {
+            seoul: [
+                { name: "인니분식", desc: "떡볶이 맛집!", category: "snack" },
+                { name: "곱창로드", desc: "곱창 좋아하면 여기!", category: "korean" }
+            ],
+            busan: [
+                { name: "해운대 스시", desc: "싱싱한 해산물!", category: "japanese" }
+            ],
+            jeju: [
+                { name: "흑돼지구이", desc: "제주도 특산 흑돼지!", category: "korean" }
+            ]
+        };
+
+        let currentRegion = null;
+
+        // 이벤트 연결
+        document.querySelectorAll('area[data-region]').forEach(area => {
+            area.addEventListener('click', e => {
+                e.preventDefault();
+                const region = area.dataset.region;
+                selectRegion(region);
+            });
+        });
+
+        function selectRegion(region) {
+            currentRegion = region;
+            document.getElementById("category-box").style.display = "flex";
+            document.getElementById("category").value = ""; // 초기화
+            updateRestaurantList();
+        }
+
+        function applyCategory() {
+            updateRestaurantList();
+        }
+
+        function updateRestaurantList() {
+            const container = document.getElementById("restaurant-list");
+            const title = document.getElementById("region-name");
+            const selectedCategory = document.getElementById("category").value;
+
+            if (!currentRegion) {
+                title.textContent = "지역을 선택해주세요";
+                container.innerHTML = "<p>먼저 지역을 선택해주세요.</p>";
+                return;
+            }
+
+            const regionLabel = regionNames[currentRegion] || currentRegion;
+            const allList = data[currentRegion] || [];
+
+            const filtered = selectedCategory
+                ? allList.filter(item => item.category === selectedCategory)
+                : allList;
+
+            title.textContent = `${regionLabel} 맛집 리스트`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = "<p>등록된 맛집이 없습니다.</p>";
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+            <div class="restaurant">
+              <strong>${item.name}</strong><br />
+              <span>${item.desc}</span>
+            </div>
+          `).join('');
+        }
+    </script>
+
+</body>
+</html>

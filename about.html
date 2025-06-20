@@ -11,19 +11,94 @@
             flex-direction: column;
             align-items: center;
         }
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #222;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+/*            line-height: 1.4;
+*/        }
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title-box {
+            background: linear-gradient(135deg, #fff1f1, #ffeae0);
+            border: 3px  #ff9aa2;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.3);
+            padding: 30px 30px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+            .title-box h1 {
+                background: linear-gradient(90deg, #ff6ec4, #7873f5);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                /* 필요 시 일반 브라우저용도 같이 */
+                background-clip: text;
+                color: transparent;
+            }
 
         .map-area {
             display: flex;
-            align-items: flex-start;
-            gap: 30px;
             justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 250px;
+            margin-top: 100px;
         }
 
         .category-box {
-            display: none;
+            display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
+
+            .category-box label {
+                font-size: 1rem;
+                font-weight: bold;
+                color: #333;
+            }
+
+        #category {
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+            #category:hover {
+                border-color: #999;
+            }
+
+            #category:focus {
+                outline: none;
+                border-color: #4CAF50;
+                box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            }
 
         .list-container {
             margin-top: 30px;
@@ -40,47 +115,61 @@
         }
 
         img {
-            width: 500px;
-            height: auto;
+            /*            width: 500px;
+        */ height: auto;
         }
     </style>
 </head>
 <body>
-
-    <h1>🍽 최서인의 전국 맛도리 지도</h1>
+    <div class="title-box">
+        <h1>🍽 최서인의 전국 맛도리 지도</h1>
+    </div>
 
     <div class="map-area">
         <!-- 지도 -->
         <div>
-            <img src="./img/map.png" usemap="#koreaMap" alt="대한민국 지도">
+            <img src="./img/map.png" usemap="#koreaMap"> <
             <map name="koreaMap">
-                <!-- 예시: data-region 속성만 유지 -->
-                <area shape="poly" coords="228,220,209,216,208,204,228,194,253,206,255,214" alt="서울" title="서울" data-region="seoul">
-                <area shape="poly" coords="220,715,229,688,188,672,126,703,148,734" alt="제주도" title="제주도" data-region="jeju">
-                <!-- ... 이 아래는 사용자가 만든 영역 전부 붙여넣기 ... -->
+                <area shape="poly" coords="479,266,499,243,396,85,347,107,298,116,252,112,260,128,297,161,298,193,326,205,317,251,326,257,368,246,410,269" alt="강원도" title="강원도" href="#" data-region="gangwon">
+                <area shape="poly" coords="220,715,229,688,188,672,126,703,148,734" alt="제주도" title="제주도" href="#" data-region="jeju">
+                <area shape="poly" coords="162,164,179,172,175,184,179,205,204,197,208,219,193,226,168,223,142,184" alt="인천" title="인천" href="#" data-region="incheon">
+                <area shape="poly" coords="248,112,215,128,197,149,203,165,186,177,179,185,183,200,207,194,209,201,228,191,258,204,259,217,230,226,210,221,196,229,185,254,198,265,198,276,210,289,266,287,312,258,322,209,295,198,292,164,255,132" alt="경기도" title="경기도" href="#" data-region="gyeonggi">
+                <area shape="poly" coords="228,220,209,216,208,204,228,194,253,206,255,214" alt="서울" title="서울" href="#" data-region="seoul">
+                <area shape="poly" coords="168,269,129,301,132,330,117,360,126,377,150,363,180,373,172,388,172,400,200,413,218,404,238,406,256,397,270,397,282,414,297,414,293,385,277,388,256,371,270,345,262,316,274,308,266,289,210,295,194,279" alt="충청남도" title="충청남도" href="#" data-region="chungnam">
+                <area shape="poly" coords="271,289,320,259,328,262,365,250,400,268,391,300,366,295,329,326,331,337,324,369,339,384,328,409,303,413,303,401,293,362,276,345,267,317,278,309" alt="충청북도" title="충청북도" href="#" data-region="chungbuk">
+                <area shape="poly" coords="278,383,262,371,275,350,290,365,292,381" alt="대전" title="대전" href="#" data-region="daejeon">
+                <area shape="poly" coords="177,408,189,433,171,453,167,478,182,501,211,482,254,503,294,501,306,488,297,465,322,427,331,427,329,416,281,419,268,401,259,401,243,414,222,409,203,420" alt="전북" title="전북" href="#" data-region="jeonbuk">
+                <area shape="poly" coords="188,513,183,524,205,543,232,526,221,514" alt="광주" title="광주" href="#" data-region="gwangju">
+                <area shape="poly" coords="247,643,254,633,278,624,285,630,294,623,295,600,328,587,324,564,306,534,296,506,256,509,214,491,184,507,168,486,151,509,153,522,126,531,128,548,120,558,106,601,124,607,99,644,109,662,134,646,137,635,161,630" alt="전라남도" title="전라남도" href="#" data-region="jeonnam">
+                <area shape="poly" coords="414,548,404,539,444,529,446,516,482,498,492,515,487,521,439,548,436,540" alt="부산" title="부산" href="#" data-region="busan">
+                <area shape="poly" coords="496,511,485,494,482,484,460,468,466,461,479,452,512,459,506,495" alt="울산" title="울산" href="#" data-region="ulsan">
+                <area shape="poly" coords="334,581,327,557,308,526,300,503,312,486,304,465,325,433,333,431,350,436,371,463,441,470,461,460,460,472,481,484,482,496,440,516,438,526,399,537,412,553,433,544,435,551,416,586,397,585,383,569,360,573,353,587" alt="경상남도" title="경상남도" href="#" data-region="gyeongnam">
+                <area shape="poly" coords="387,459,371,462,357,437,335,427,335,414,345,384,330,367,334,336,336,330,368,301,394,308,407,271,480,271,492,258,502,288,515,305,507,405,521,402,521,425,513,454,479,446,438,468,406,464,433,431,416,411,386,428,388,446" alt="경상북도" title="경상북도" href="#" data-region="gyeongbuk">
+                <area shape="poly" coords="403,462,388,461,394,444,389,431,415,415,426,431" alt="대구" title="대구" href="#" data-region="daegu">
             </map>
+
         </div>
 
-        <!-- 카테고리 -->
-        <div class="category-box" id="category-box">
-            <label for="category"><strong>카테고리 선택</strong></label>
-            <select id="category" onchange="applyCategory()">
-                <option value="">전체</option>
-                <option value="korean">한식</option>
-                <option value="chinese">중식</option>
-                <option value="japanese">일식</option>
-                <option value="snack">분식</option>
-                <option value="cafe">카페</option>
-            </select>
+        <div class="side-panel">
+            <h2 id="region-name">지역을 선택해주세요</h2>
+
+            <div class="category-box" id="category-box">
+                <label for="category"><strong>카테고리 선택</strong></label>
+                <select id="category" onchange="applyCategory()">
+                    <option value="">전체</option>
+                    <option value="korean">한식</option>
+                    <option value="chinese">중식</option>
+                    <option value="japanese">일식</option>
+                    <option value="snack">분식</option>
+                    <option value="cafe">카페</option>
+                </select>
+            </div>
+
+            <div class="list-container">
+                <div id="restaurant-list"></div>
+            </div>
         </div>
     </div>
-
-    <!-- 리스트 -->
-    <div class="list-container">
-        <h2 id="region-name">지역을 선택해주세요</h2>
-        <div id="restaurant-list"></div>
-    </div>
-
     <script>
         const regionNames = {
             seoul: "서울",
@@ -162,11 +251,11 @@
             }
 
             container.innerHTML = filtered.map(item => `
-            <div class="restaurant">
-              <strong>${item.name}</strong><br />
-              <span>${item.desc}</span>
-            </div>
-          `).join('');
+                            <div class="restaurant">
+                              <strong>${item.name}</strong><br />
+                              <span>${item.desc}</span>
+                            </div>
+                          `).join('');
         }
     </script>
 

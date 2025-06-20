@@ -1,121 +1,195 @@
 ﻿<!DOCTYPE html>
+
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>최서인의 전국 맛도리 지도</title>
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            margin: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #222;
-            text-align: center;
-            position: relative;
-            padding-bottom: 10px;
-/*            line-height: 1.4;
-*/        }
-        @keyframes fadeInUp {
-            0% {
-                opacity: 0;
-                transform: translateY(30px);
+                body {
+                    font-family: 'Noto Sans KR', sans-serif;
+                    margin: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                h1 {
+                    font-size: 3rem;
+                    font-weight: 800;
+                    color: #222;
+                    text-align: center;
+                    position: relative;
+                    padding-bottom: 10px;
+                    /*            line-height: 1.4;
+        */
+                }
+
+                @keyframes fadeInUp {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .title-box {
+                    background: linear-gradient(135deg, #fff1f1, #ffeae0);
+                    border: 3px #ff9aa2;
+                    border-radius: 20px;
+                    box-shadow: 0 8px 20px rgba(255, 182, 193, 0.3);
+                    padding: 30px 30px;
+                    text-align: center;
+                    max-width: 600px;
+                    width: 100%;
+                    animation: fadeInUp 1.2s ease-out;
+                }
+
+                    .title-box h1 {
+                        background: linear-gradient(90deg, #ff6ec4, #7873f5);
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        color: transparent;
+                        display: inline-block;
+                    }
+
+                .map-area {
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    gap: 40px;
+                }
+
+                .side-panel {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    min-width: 250px;
+                    margin-top: 100px;
+                }
+
+                .category-box {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                    .category-box label {
+                        font-size: 1rem;
+                        font-weight: bold;
+                        color: #333;
+                    }
+
+                #category {
+                    padding: 8px 12px;
+                    font-size: 0.95rem;
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                    background-color: #fff;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                    transition: all 0.2s ease;
+                }
+
+                    #category:hover {
+                        border-color: #999;
+                    }
+
+                    #category:focus {
+                        outline: none;
+                        border-color: #4CAF50;
+                        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+                    }
+
+                .list-container {
+                    margin-top: 30px;
+                    max-width: 600px;
+                }
+
+                .restaurant {
+                    border-bottom: 1px solid #ccc;
+                    padding: 10px 0;
+                }
+
+                h2 {
+                    margin-top: 0;
+                }
+
+                img {
+                    /*            width: 500px;
+                */ height: auto;
+                }
+        @media (max-width: 768px) {
+            html, body {
+                width: 98%;
+                overflow-x: hidden;
+            }
+            .side-panel {
+                min-width: auto;
+                width: 100%;
             }
 
-            100% {
-                opacity: 1;
-                transform: translateY(0);
+            .map-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            body {
+                margin: 10px;
+            }
+
+            .map-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                width: 100%;
+            }
+
+                .map-area img {
+                    width: 100%;
+                    max-width: 100%;
+                    height: auto;
+                }
+
+            .side-panel {
+                width: 100%;
+                margin-top: 0;
+                align-items: center;
+            }
+
+            .category-box,
+            .list-container {
+                width: 100%;
+                max-width: 500px;
+
+            }
+            .category-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .restaurant {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                text-align: center;
+            }
+
+            #category {
+                width: 80%;
             }
         }
 
-        .title-box {
-            background: linear-gradient(135deg, #fff1f1, #ffeae0);
-            border: 3px  #ff9aa2;
-            border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.3);
-            padding: 30px 30px;
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-            animation: fadeInUp 1.2s ease-out;
-        }
 
-            .title-box h1 {
-                background: linear-gradient(90deg, #ff6ec4, #7873f5);
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                color: transparent;
-                display: inline-block;
-            }
-        .map-area {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 40px;
-        }
-
-        .side-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            min-width: 250px;
-            margin-top: 100px;
-        }
-
-        .category-box {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-            .category-box label {
-                font-size: 1rem;
-                font-weight: bold;
-                color: #333;
-            }
-
-        #category {
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-        }
-
-            #category:hover {
-                border-color: #999;
-            }
-
-            #category:focus {
-                outline: none;
-                border-color: #4CAF50;
-                box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-            }
-
-        .list-container {
-            margin-top: 30px;
-            max-width: 600px;
-        }
-
-        .restaurant {
-            border-bottom: 1px solid #ccc;
-            padding: 10px 0;
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        img {
-            /*            width: 500px;
-        */ height: auto;
-        }
     </style>
 </head>
 <body>
@@ -127,7 +201,7 @@
     <div class="map-area">
         <!-- 지도 -->
         <div>
-            <img src="./img/map.png" usemap="#koreaMap"> 
+            <img src="./img/map.png" usemap="#koreaMap">
             <map name="koreaMap">
                 <area shape="poly" coords="479,266,499,243,396,85,347,107,298,116,252,112,260,128,297,161,298,193,326,205,317,251,326,257,368,246,410,269" alt="강원도" title="강원도" href="#" data-region="gangwon">
                 <area shape="poly" coords="220,715,229,688,188,672,126,703,148,734" alt="제주도" title="제주도" href="#" data-region="jeju">
@@ -234,10 +308,10 @@
                 { name: "초가네장어구이", desc: "장어구이 가성비 개쩔게 먹기 가능한 곳", category: "korean" },
                 { name: "해빔", desc: "멍게비빔밥 꼭 드셔요", category: "korean" },
                 { name: "바다로회수산", desc: "쥔장 최애 숙성광어횟집,, 남악으로 옮겼지만 진짜 맛있어요", category: "korean" },
-                { name: "신창손순대국밥", desc: "줄서서 먹는 순대국밥. 맛도리에 껴줄까말까 살짝 고민함", category: "korean" },            
+                { name: "신창손순대국밥", desc: "줄서서 먹는 순대국밥. 맛도리에 껴줄까말까 살짝 고민함", category: "korean" },
                 { name: "순이네밥상", desc: "갈치조림정식", category: "korean" },
             ]
-,
+            ,
             jeju: [
                 { name: "마담나탈리 소셜클럽", desc: "제주에서 맛보는 재즈공연과 수도원 맥주, 쥔장이 정말 사랑하는 곳", category: "bar" },
                 { name: "더전복", desc: "전복솥밥 맛집, 아직 여기보다 맛있는 집 못가봄", category: "korean" },
@@ -301,13 +375,33 @@
             }
 
             container.innerHTML = filtered.map(item => `
-                            <div class="restaurant">
-                              <strong>${item.name}</strong><br />
-                              <span>${item.desc}</span>
-                            </div>
-                          `).join('');
+                                <div class="restaurant">
+                                  <strong>${item.name}</strong><br />
+                                  <span>${item.desc}</span>
+                                </div>
+                              `).join('');
         }
     </script>
+    <script>
+        window.addEventListener('resize', scaleMapArea);
+        window.addEventListener('DOMContentLoaded', scaleMapArea);
 
+        function scaleMapArea() {
+            const img = document.querySelector('img[usemap]');
+            const map = document.querySelector('map');
+            const width = img.naturalWidth;
+            const height = img.naturalHeight;
+            const scaleX = img.clientWidth / width;
+            const scaleY = img.clientHeight / height;
+
+            map.querySelectorAll('area').forEach(area => {
+                const originalCoords = area.dataset.originalCoords || area.coords;
+                const coords = originalCoords.split(',').map(Number);
+                area.dataset.originalCoords = originalCoords; // 저장해둠
+                const scaled = coords.map((c, i) => i % 2 === 0 ? c * scaleX : c * scaleY);
+                area.coords = scaled.map(c => Math.round(c)).join(',');
+            });
+        }
+    </script>
 </body>
 </html>

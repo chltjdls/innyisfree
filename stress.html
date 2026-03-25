@@ -1,0 +1,1408 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UX Hell Ultimate</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #111;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+            padding: 20px;
+        }
+
+        button {
+            padding: 14px 22px;
+            font-size: 18px;
+            border: none;
+            background: white;
+            color: black;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .small {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .ui-piece {
+            padding: 8px 12px;
+            margin: 4px;
+            background: #333;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+            z-index: 2;
+        }
+
+        .tiny-note {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .level5-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            min-height: 90px;
+        }
+
+        .slot {
+            min-width: 90px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255,255,255,0.25);
+            border-radius: 16px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .char {
+            font-size: 56px;
+            line-height: 1;
+            cursor: pointer;
+            min-width: 1ch;
+            text-align: center;
+        }
+
+        .merge-wrap {
+            position: relative;
+            width: 220px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .merge-char {
+            position: absolute;
+            font-size: 56px;
+            line-height: 1;
+            transition: transform 0.45s ease, opacity 0.45s ease, left 0.45s ease, top 0.45s ease;
+            will-change: transform, opacity, left, top;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .pinball-hud {
+            position: absolute;
+            left: 50%;
+            top: 18px;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 12px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        .fake-next {
+            position: absolute;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #fff;
+            background: #777;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .real-next {
+            background: #2e2e2e;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset;
+        }
+
+        .paddle {
+            position: absolute;
+            background: #fff;
+            border-radius: 999px;
+        }
+
+        .ball {
+            position: absolute;
+            border-radius: 50%;
+            background: orange;
+        }
+
+        .bumper {
+            position: absolute;
+            border-radius: 50%;
+            background: #0ff3;
+            border: 2px solid #0ff;
+            box-shadow: 0 0 18px #0ff6;
+        }
+
+        .lane-wall {
+            position: absolute;
+            background: rgba(255,255,255,0.12);
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        let level = 1;
+        let cleanup = null;
+
+        function nextLevel() {
+            level++;
+            render();
+        }
+
+        function restartGame() {
+            level = 1;
+            render();
+        }
+
+        function safeVibrate(pattern) {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function getTouchPos(e) {
+            if (e.touches && e.touches.length) return e.touches[0];
+            if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+            return e;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (cleanup) cleanup();
+            cleanup = null;
+            app.innerHTML = '';
+            app.removeAttribute('style');
+
+            if (level === 1) cleanup = level1(app);
+            else if (level === 2) cleanup = level2(app);
+            else if (level === 3) cleanup = level3(app);
+            else if (level === 4) cleanup = level4(app);
+            else if (level === 5) cleanup = level5(app);
+            else ending(app);
+        }
+
+        // ---------------- LEVEL 1 ----------------
+        function level1(app) {
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            container.style.width = '100%';
+            container.style.height = '100vh';
+            container.style.background = '#181818';
+            container.style.overflow = 'hidden';
+            app.appendChild(container);
+
+            const page = document.createElement('div');
+            page.style.width = '100%';
+            page.style.height = '100%';
+            page.style.display = 'flex';
+            page.style.flexDirection = 'column';
+            page.style.gap = '12px';
+            page.style.padding = '20px';
+            page.style.boxSizing = 'border-box';
+            container.appendChild(page);
+
+            const startBtn = document.createElement('button');
+            startBtn.innerText = '시작하기';
+            startBtn.style.position = 'absolute';
+            startBtn.style.right = '20px';
+            startBtn.style.bottom = '20px';
+            startBtn.style.zIndex = '99999';
+            container.appendChild(startBtn);
+
+            const pieces = [];
+            let started = false;
+            let raf = null;
+            let currentDragZ = 10000;
+            let physicsStarted = false;
+
+            function makePiece(text, styles = {}, isNext = false) {
+                const el = document.createElement('div');
+                el.className = 'ui-piece';
+                el.innerText = text;
+                el.style.position = 'relative';
+                el.style.background = styles.background || '#2e2e2e';
+                el.style.color = styles.color || '#fff';
+                el.style.padding = styles.padding || '14px 18px';
+                el.style.borderRadius = styles.borderRadius || '10px';
+                el.style.fontSize = styles.fontSize || '16px';
+                el.style.fontWeight = styles.fontWeight || 'normal';
+                el.style.width = styles.width || 'auto';
+                el.style.height = styles.height || 'auto';
+                el.style.display = styles.display || 'block';
+                el.style.alignItems = styles.alignItems || '';
+                el.style.justifyContent = styles.justifyContent || '';
+                el.style.gap = styles.gap || '';
+                el.style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)';
+                el.style.touchAction = 'none';
+                el.style.userSelect = 'none';
+
+                const piece = {
+                    el,
+                    text,
+                    isNext,
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                    vx: 0,
+                    vy: 0,
+                    angle: 0,
+                    angularVelocity: 0,
+                    settled: false,
+                    dragging: false,
+                    grabbedOffsetX: 0,
+                    grabbedOffsetY: 0
+                };
+
+                if (isNext) el.dataset.next = 'true';
+                pieces.push(piece);
+                return el;
+            }
+
+            // 대충 만든 홈페이지
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.gap = '12px';
+            page.appendChild(header);
+
+            const logo = makePiece('INNY WORLD', {
+                background: '#fff',
+                color: '#111',
+                fontWeight: 'bold',
+                fontSize: '20px',
+                padding: '14px 18px'
+            });
+            header.appendChild(logo);
+
+            const nav = document.createElement('div');
+            nav.style.display = 'flex';
+            nav.style.gap = '8px';
+            header.appendChild(nav);
+
+            function makeNavItem(title, value, icon) {
+                const wrap = document.createElement('div');
+                wrap.className = 'ui-piece';
+                wrap.style.display = 'flex';
+                wrap.style.alignItems = 'center';
+                wrap.style.gap = '8px';
+                wrap.style.padding = '10px 14px';
+                wrap.style.background = '#2b2b2b';
+                wrap.style.borderRadius = '12px';
+                wrap.style.cursor = 'pointer';
+
+                const iconEl = document.createElement('div');
+                iconEl.innerText = icon;
+                iconEl.style.fontSize = '16px';
+
+                const textWrap = document.createElement('div');
+                textWrap.style.display = 'flex';
+                textWrap.style.flexDirection = 'column';
+                textWrap.style.lineHeight = '1.1';
+
+                const t1 = document.createElement('div');
+                t1.style.fontSize = '11px';
+                t1.style.opacity = '0.6';
+                t1.innerText = title;
+
+                const t2 = document.createElement('div');
+                t2.style.fontSize = '14px';
+                t2.style.fontWeight = 'bold';
+                t2.innerText = value;
+
+                textWrap.appendChild(t1);
+                textWrap.appendChild(t2);
+
+                wrap.appendChild(iconEl);
+                wrap.appendChild(textWrap);
+
+                return wrap;
+            }
+
+            // 적용
+            nav.appendChild(makeNavItem('캘린더', '오늘 일정 3개', '📅'));
+            nav.appendChild(makeNavItem('날씨', '22°C · 맑음', '☀️'));
+            nav.appendChild(makeNavItem('할 일', '3개 남음', '📝'));
+
+            const hero = document.createElement('div');
+            hero.style.display = 'grid';
+            hero.style.gridTemplateColumns = '2fr 1fr';
+            hero.style.gap = '12px';
+            page.appendChild(hero);
+
+            const heroMain = makePiece('🔥 오늘의 추천 일정\n- 아침 회의\n- 점심 메뉴 고민\n- 퇴근 후 눕기', {
+                background: '#2b2b2b',
+                padding: '22px',
+                fontSize: '18px',
+                height: '180px'
+            });
+            heroMain.style.whiteSpace = 'pre-line';
+            hero.appendChild(heroMain);
+
+            const side = document.createElement('div');
+            side.style.display = 'flex';
+            side.style.flexDirection = 'column';
+            side.style.gap = '12px';
+            hero.appendChild(side);
+
+            side.appendChild(makePiece('뉴스: 최서인이 집에 가고싶다는 속보입니다.', {
+                background: '#353535',
+                height: '84px',
+                display: 'flex',
+                alignItems: 'center'
+            }));
+
+            const floatingAd = makePiece('🔥 지금 클릭!', {
+                background: '#ff4444',
+                height: '84px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            });
+
+            let dir = 1;
+            setInterval(() => {
+                const y = floatingAd.offsetTop + dir * 5;
+                floatingAd.style.transform = `translateY(${Math.sin(Date.now() / 200) * 10}px)`;
+            }, 16);
+
+            floatingAd.onclick = () => {
+                alert('뀨~');
+            };
+
+            side.appendChild(floatingAd);
+
+            const cards = document.createElement('div');
+            cards.style.display = 'grid';
+            cards.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            cards.style.gap = '12px';
+            page.appendChild(cards);
+
+            cards.appendChild(makePiece('주간 리포트', {
+                background: '#2f2f2f',
+                height: '110px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }));
+
+            cards.appendChild(makePiece('인기 글', {
+                background: '#3a3a3a',
+                height: '110px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }));
+
+            const nextEl = makePiece('NEXT', {
+                background: '#fff',
+                color: '#111',
+                fontWeight: 'bold',
+                height: '110px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }, true);
+            cards.appendChild(nextEl);
+
+            const footer = document.createElement('div');
+            footer.style.marginTop = 'auto';
+            footer.style.display = 'flex';
+            footer.style.gap = '12px';
+            page.appendChild(footer);
+
+            footer.appendChild(makePiece('푸터 링크', { background: '#262626' }));
+            footer.appendChild(makePiece('고객센터', { background: '#262626' }));
+            footer.appendChild(makePiece('설정', { background: '#262626' }));
+
+            function syncPieceFromDOM(piece) {
+                const rect = piece.el.getBoundingClientRect();
+                const crect = container.getBoundingClientRect();
+                piece.x = rect.left - crect.left;
+                piece.y = rect.top - crect.top;
+                piece.w = rect.width;
+                piece.h = rect.height;
+            }
+
+            function renderPiece(piece) {
+                piece.el.style.left = piece.x + 'px';
+                piece.el.style.top = piece.y + 'px';
+                piece.el.style.transform = `rotate(${piece.angle}deg)`;
+            }
+
+            function rectsOverlap(a, b) {
+                return !(
+                    a.x + a.w <= b.x ||
+                    b.x + b.w <= a.x ||
+                    a.y + a.h <= b.y ||
+                    b.y + b.h <= a.y
+                );
+            }
+
+            function dragStart(e, piece) {
+                if (!physicsStarted) return;
+                e.preventDefault();
+
+                const pos = getTouchPos(e);
+                piece.dragging = true;
+                piece.settled = false;
+                piece.vx = 0;
+                piece.vy = 0;
+                piece.angularVelocity = 0;
+                piece.grabbedOffsetX = pos.clientX - piece.x;
+                piece.grabbedOffsetY = pos.clientY - piece.y;
+                piece.el.style.zIndex = String(currentDragZ++);
+
+                function dragMove(ev) {
+                    ev.preventDefault();
+                    const p = getTouchPos(ev);
+                    const prevX = piece.x;
+                    const prevY = piece.y;
+
+                    piece.x = clamp(
+                        p.clientX - piece.grabbedOffsetX,
+                        0,
+                        container.clientWidth - piece.w
+                    );
+
+                    piece.y = clamp(
+                        p.clientY - piece.grabbedOffsetY,
+                        0,
+                        container.clientHeight - piece.h
+                    );
+
+                    piece.vx = piece.x - prevX;
+                    piece.vy = piece.y - prevY;
+                    piece.angle += piece.vx * 0.15;
+
+                    renderPiece(piece);
+                }
+
+                function dragEnd() {
+                    piece.dragging = false;
+                    document.removeEventListener('mousemove', dragMove);
+                    document.removeEventListener('mouseup', dragEnd);
+                    document.removeEventListener('touchmove', dragMove);
+                    document.removeEventListener('touchend', dragEnd);
+                }
+
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchmove', dragMove, { passive: false });
+                document.addEventListener('touchend', dragEnd);
+            }
+
+            function beginPhysics() {
+                physicsStarted = true;
+
+                pieces.forEach((piece, index) => {
+                    syncPieceFromDOM(piece);
+
+                    // 중요: page 밖으로 꺼내서 container로 이동
+                    container.appendChild(piece.el);
+
+                    piece.el.style.position = 'absolute';
+                    piece.el.style.margin = '0';
+                    piece.el.style.width = piece.w + 'px';
+                    piece.el.style.height = piece.h + 'px';
+                    piece.el.style.transition = 'none';
+
+                    if (piece.isNext) {
+                        piece.x = window.innerWidth * 0.48 - piece.w / 2;
+                        piece.y = -40;
+                        piece.vx = (Math.random() * 2 - 1) * 0.5;
+                        piece.vy = 1.5;
+                        piece.angle = Math.random() * 10 - 5;
+                        piece.angularVelocity = Math.random() * 0.2 - 0.1;
+                        piece.el.style.zIndex = '2';
+                    } else {
+                        const targetBiasX = window.innerWidth * 0.48;
+                        const dx = targetBiasX - (piece.x + piece.w / 2);
+
+                        piece.vx = dx * 0.015 + (Math.random() * 2 - 1) * 2.5;
+                        piece.vy = Math.random() * 1.5;
+                        piece.angle = Math.random() * 14 - 7;
+                        piece.angularVelocity = Math.random() * 1.2 - 0.6;
+                        piece.el.style.zIndex = String(20 + index);
+                    }
+
+                    renderPiece(piece);
+
+                    piece.el.onmousedown = (e) => dragStart(e, piece);
+                    piece.el.ontouchstart = (e) => dragStart(e, piece);
+
+                    if (piece.isNext) {
+                        piece.el.onclick = (ev) => {
+                            ev.stopPropagation();
+                            nextLevel();
+                        };
+                    }
+                });
+
+                // 이제 page를 숨겨도 조각은 container에 있으니까 보임
+                page.style.opacity = '0';
+                page.style.pointerEvents = 'none';
+
+                const gravity = 0.42;
+                const friction = 0.985;
+                const bounce = 0.08;
+                const floor = window.innerHeight - 24;
+
+                function tick() {
+                    for (const piece of pieces) {
+                        if (piece.dragging) continue;
+
+                        piece.vy += gravity;
+                        piece.x += piece.vx;
+                        piece.y += piece.vy;
+                        piece.angle += piece.angularVelocity;
+
+                        piece.vx *= friction;
+                        piece.angularVelocity *= 0.985;
+
+                        const maxX = container.clientWidth - piece.w;
+                        const maxY = container.clientHeight - piece.h;
+
+                        // 왼쪽
+                        if (piece.x < 0) {
+                            piece.x = 0;
+                            piece.vx *= -0.25;
+                        }
+
+                        // 오른쪽
+                        if (piece.x > maxX) {
+                            piece.x = maxX;
+                            piece.vx *= -0.25;
+                        }
+
+                        // 위쪽
+                        if (piece.y < 0) {
+                            piece.y = 0;
+                            piece.vy *= -0.15;
+                        }
+
+                        // 아래쪽
+                        if (piece.y > maxY) {
+                            piece.y = maxY;
+                            piece.vy *= -bounce;
+                            piece.vx *= 0.92;
+                            piece.angularVelocity *= 0.9;
+
+                            if (Math.abs(piece.vy) < 0.8) piece.vy = 0;
+                        }
+                    }
+
+                    for (let i = 0; i < pieces.length; i++) {
+                        const a = pieces[i];
+                        if (a.dragging) continue;
+
+                        for (let j = i + 1; j < pieces.length; j++) {
+                            const b = pieces[j];
+                            if (b.dragging) continue;
+
+                            if (!rectsOverlap(a, b)) continue;
+
+                            const overlapX1 = (a.x + a.w) - b.x;
+                            const overlapX2 = (b.x + b.w) - a.x;
+                            const overlapY1 = (a.y + a.h) - b.y;
+                            const overlapY2 = (b.y + b.h) - a.y;
+
+                            const minOverlapX = Math.min(overlapX1, overlapX2);
+                            const minOverlapY = Math.min(overlapY1, overlapY2);
+
+                            if (minOverlapY <= minOverlapX) {
+                                if (a.y < b.y) {
+                                    a.y -= minOverlapY * 0.15;
+                                    b.y += minOverlapY * 0.85;
+                                    if (a.vy > 0) a.vy *= 0.2;
+                                    b.vy += 0.15;
+                                } else {
+                                    b.y -= minOverlapY * 0.15;
+                                    a.y += minOverlapY * 0.85;
+                                    if (b.vy > 0) b.vy *= 0.2;
+                                    a.vy += 0.15;
+                                }
+                            } else {
+                                if (a.x < b.x) {
+                                    a.x -= minOverlapX * 0.5;
+                                    b.x += minOverlapX * 0.5;
+                                } else {
+                                    b.x -= minOverlapX * 0.5;
+                                    a.x += minOverlapX * 0.5;
+                                }
+
+                                const temp = a.vx;
+                                a.vx = b.vx * 0.35;
+                                b.vx = temp * 0.35;
+                            }
+                        }
+                    }
+
+                    for (const piece of pieces) {
+                        renderPiece(piece);
+                    }
+
+                    raf = requestAnimationFrame(tick);
+                }
+
+                tick();
+            }
+
+            startBtn.onclick = () => {
+                if (started) return;
+                started = true;
+                startBtn.style.display = 'none';
+                beginPhysics();
+            };
+
+            return () => {
+                if (raf) cancelAnimationFrame(raf);
+            };
+        }
+
+        // ---------------- LEVEL 2 ----------------
+        function level2(app) {
+            const note = document.createElement('div');
+            note.className = 'tiny-note';
+            note.style.position = 'absolute';
+            note.style.top = '20px';
+            note.style.left = '50%';
+            note.style.transform = 'translateX(-50%)';
+            //note.innerText = '움직이는 버튼을 3번 눌러라';
+            app.appendChild(note);
+
+            const btn = document.createElement('button');
+            btn.innerText = 'Next';
+            btn.style.position = 'absolute';
+
+            let clickCount = 0;
+
+            function move() {
+                btn.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+                btn.style.top = Math.random() * (window.innerHeight - 80) + 'px';
+            }
+
+            function onClick() {
+                clickCount++;
+                if (clickCount >= 12) {
+                    nextLevel();
+                } else {
+                    safeVibrate(50);
+                    move();
+                }
+            }
+
+            move();
+            btn.addEventListener('click', onClick);
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                onClick();
+            });
+
+            app.appendChild(btn);
+            return () => { };
+        }
+
+        // ---------------- LEVEL 3 ----------------
+        function level3(app) {
+            const div = document.createElement('div');
+            div.style.position = 'relative';
+            div.style.height = '100vh';
+            div.style.width = '100%';
+            app.appendChild(div);
+
+            const guide = document.createElement('div');
+            guide.className = 'tiny-note';
+            guide.style.position = 'absolute';
+            guide.style.left = '50%';
+            guide.style.top = '20px';
+            guide.style.transform = 'translateX(-50%)';
+            //guide.innerText = '버튼을 길게 눌러 힘을 모은 뒤 쏴서 과녁에 맞혀라';
+            div.appendChild(guide);
+
+            const target = document.createElement('div');
+            target.style.position = 'absolute';
+            target.style.width = '100px';
+            target.style.height = '100px';
+            target.style.borderRadius = '50%';
+            target.style.background = 'red';
+            target.style.left = '85%';
+            target.style.top = '50%';
+            target.style.transform = 'translate(-50%, -50%)';
+            div.appendChild(target);
+
+            const btn = document.createElement('button');
+            btn.innerText = 'NEXT';
+            btn.style.position = 'absolute';
+            btn.style.left = '0px';
+            btn.style.top = '50%';
+            btn.style.transform = 'translateY(-50%)';
+            div.appendChild(btn);
+
+            const powerBarWrap = document.createElement('div');
+            powerBarWrap.style.position = 'absolute';
+            powerBarWrap.style.left = '20px';
+            powerBarWrap.style.top = '60%';
+            powerBarWrap.style.width = '120px';
+            powerBarWrap.style.height = '12px';
+            powerBarWrap.style.border = '1px solid #666';
+            powerBarWrap.style.borderRadius = '999px';
+            powerBarWrap.style.overflow = 'hidden';
+            div.appendChild(powerBarWrap);
+
+            const powerBar = document.createElement('div');
+            powerBar.style.width = '0%';
+            powerBar.style.height = '100%';
+            powerBar.style.background = 'lime';
+            powerBarWrap.appendChild(powerBar);
+
+            let power = 0;
+            let interval = null;
+            let charging = false;
+
+            const maxPower = 100;
+            const maxTime = 4300;
+            const startLeftPx = 0;
+            const targetLeftPercent = 85;
+
+            function start() {
+                if (charging) return;
+                charging = true;
+                power = 0;
+                powerBar.style.width = '0%';
+                const startTime = Date.now();
+
+                interval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    power = Math.min(maxPower, (elapsed / maxTime) * maxPower);
+                    powerBar.style.width = power + '%';
+                }, 20);
+            }
+
+            function end() {
+                if (!charging) return;
+                charging = false;
+                clearInterval(interval);
+
+                const divWidth = div.clientWidth;
+                const targetLeftPx = (targetLeftPercent / 100) * divWidth;
+                const distance = (targetLeftPx - startLeftPx) * (power / maxPower);
+                const finalLeft = startLeftPx + distance;
+
+                btn.style.transition = 'left 0.9s ease-out';
+                btn.style.left = finalLeft + 'px';
+
+                setTimeout(() => {
+                    const btnRect = btn.getBoundingClientRect();
+                    const targetRect = target.getBoundingClientRect();
+
+                    const btnCenterX = btnRect.left + btnRect.width / 2;
+                    const btnCenterY = btnRect.top + btnRect.height / 2;
+                    const targetCenterX = targetRect.left + targetRect.width / 2;
+                    const targetCenterY = targetRect.top + targetRect.height / 2;
+
+                    const dx = btnCenterX - targetCenterX;
+                    const dy = btnCenterY - targetCenterY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < targetRect.width / 2) {
+                        nextLevel();
+                    } else {
+                        safeVibrate([100, 50, 100]);
+                        alert('ㅋㅋ실패ㅋㅋ');
+                        btn.style.transition = 'none';
+                        btn.style.left = startLeftPx + 'px';
+                        powerBar.style.width = '0%';
+                    }
+                }, 950);
+            }
+
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('mouseup', end);
+            btn.addEventListener('mouseleave', end);
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                start();
+            }, { passive: false });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                end();
+            });
+
+            return () => clearInterval(interval);
+        }
+
+        // ---------------- LEVEL 4 : PINBALL-ish ----------------
+        function level4(app) {
+            app.style.position = 'relative';
+            app.style.overflow = 'hidden';
+            app.style.height = '100vh';
+            app.style.background = '#111';
+
+            const game = document.createElement('div');
+            game.style.position = 'relative';
+            game.style.width = '100%';
+            game.style.height = '100%';
+            app.appendChild(game);
+
+            const hud = document.createElement('div');
+            hud.className = 'pinball-hud';
+            //hud.innerHTML = '패들로 공을 튕겨라<br>범퍼 맞고 진짜 Next를 찾아 맞히면 클리어';
+            game.appendChild(hud);
+
+            const getW = () => game.clientWidth;
+            const getH = () => game.clientHeight;
+
+            function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
+                const nearestX = clamp(cx, rx, rx + rw);
+                const nearestY = clamp(cy, ry, ry + rh);
+                const dx = cx - nearestX;
+                const dy = cy - nearestY;
+                return dx * dx + dy * dy <= r * r;
+            }
+
+            function circleCircleCollision(x1, y1, r1, x2, y2, r2) {
+                const dx = x1 - x2;
+                const dy = y1 - y2;
+                const rr = r1 + r2;
+                return dx * dx + dy * dy <= rr * rr;
+            }
+
+            // fake walls just for visual flavor
+            const leftWall = document.createElement('div');
+            leftWall.className = 'lane-wall';
+            leftWall.style.left = '24px';
+            leftWall.style.top = '90px';
+            leftWall.style.width = '8px';
+            leftWall.style.height = 'calc(100% - 150px)';
+            game.appendChild(leftWall);
+
+            const rightWall = document.createElement('div');
+            rightWall.className = 'lane-wall';
+            rightWall.style.right = '24px';
+            rightWall.style.top = '90px';
+            rightWall.style.width = '8px';
+            rightWall.style.height = 'calc(100% - 150px)';
+            game.appendChild(rightWall);
+
+            // targets
+            const targets = [];
+            const targetCount = 16;
+            const targetW = 76;
+            const targetH = 42;
+
+            function addTarget(x, y, isReal) {
+                const t = document.createElement('div');
+                t.className = 'fake-next' + (isReal ? ' real-next' : '');
+                t.style.width = targetW + 'px';
+                t.style.height = targetH + 'px';
+                t.style.left = x + 'px';
+                t.style.top = y + 'px';
+                t.textContent = 'Next';
+                game.appendChild(t);
+
+                targets.push({
+                    el: t,
+                    x, y,
+                    w: targetW,
+                    h: targetH,
+                    real: isReal,
+                    alive: true
+                });
+            }
+
+            const cols = 4;
+            const gapX = 20;
+            const gapY = 18;
+            const totalW = cols * targetW + (cols - 1) * gapX;
+            const startX = Math.max(36, (getW() - totalW) / 2);
+            const startY = 90;
+
+            const realIndex = Math.floor(Math.random() * targetCount);
+
+            for (let i = 0; i < targetCount; i++) {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const jitterX = Math.random() * 10 - 5;
+                const jitterY = Math.random() * 8 - 4;
+                const x = startX + col * (targetW + gapX) + jitterX;
+                const y = startY + row * (targetH + gapY) + jitterY;
+                addTarget(x, y, i === realIndex);
+            }
+
+            // bumpers
+            const bumpers = [];
+            const bumperData = [
+                { x: 0.28, y: 0.36, r: 26 },
+                { x: 0.50, y: 0.28, r: 30 },
+                { x: 0.72, y: 0.36, r: 26 }
+            ];
+
+            bumperData.forEach(b => {
+                const el = document.createElement('div');
+                el.className = 'bumper';
+                game.appendChild(el);
+                bumpers.push({ el, xRatio: b.x, yRatio: b.y, r: b.r, x: 0, y: 0 });
+            });
+
+            function layoutBumpers() {
+                bumpers.forEach(b => {
+                    b.x = getW() * b.xRatio;
+                    b.y = getH() * b.yRatio;
+                    b.el.style.width = b.r * 2 + 'px';
+                    b.el.style.height = b.r * 2 + 'px';
+                    b.el.style.left = (b.x - b.r) + 'px';
+                    b.el.style.top = (b.y - b.r) + 'px';
+                });
+            }
+
+            // paddle
+            const paddle = document.createElement('div');
+            paddle.className = 'paddle';
+            const paddleW = 150;
+            const paddleH = 16;
+            let paddleX = getW() / 2 - paddleW / 2;
+            let paddleY = getH() - 78;
+
+            paddle.style.width = paddleW + 'px';
+            paddle.style.height = paddleH + 'px';
+            game.appendChild(paddle);
+
+            function drawPaddle() {
+                paddle.style.left = paddleX + 'px';
+                paddle.style.top = paddleY + 'px';
+            }
+
+            // ball
+            const ball = document.createElement('div');
+            ball.className = 'ball';
+            const ballSize = 18;
+            const r = ballSize / 2;
+            let ballX = getW() / 2;
+            let ballY = paddleY - r - 4;
+            let vx = 3.8;
+            let vy = -5.5;
+            let raf = null;
+            let running = true;
+
+            ball.style.width = ballSize + 'px';
+            ball.style.height = ballSize + 'px';
+            game.appendChild(ball);
+
+            function drawBall() {
+                ball.style.left = (ballX - r) + 'px';
+                ball.style.top = (ballY - r) + 'px';
+            }
+
+            function resetBall() {
+                paddleY = getH() - 78;
+                paddleX = clamp(paddleX, 0, getW() - paddleW);
+                ballX = paddleX + paddleW / 2;
+                ballY = paddleY - r - 4;
+                vx = (Math.random() > 0.5 ? 1 : -1) * (3.4 + Math.random() * 1.2);
+                vy = -5.3;
+                drawPaddle();
+                drawBall();
+            }
+
+            function setPaddle(clientX) {
+                paddleX = clamp(clientX - paddleW / 2, 0, getW() - paddleW);
+                drawPaddle();
+            }
+
+            function onMouseMove(e) {
+                const rect = game.getBoundingClientRect();
+                setPaddle(e.clientX - rect.left);
+            }
+
+            function onTouchMove(e) {
+                e.preventDefault();
+                const rect = game.getBoundingClientRect();
+                setPaddle(e.touches[0].clientX - rect.left);
+            }
+
+            function reflectFromBumper(b) {
+                const dx = ballX - b.x;
+                const dy = ballY - b.y;
+                const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                const nx = dx / len;
+                const ny = dy / len;
+
+                const dot = vx * nx + vy * ny;
+                vx = vx - 2 * dot * nx;
+                vy = vy - 2 * dot * ny;
+
+                const boost = 1.15;
+                vx *= boost;
+                vy *= boost;
+
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                const maxSpeed = 9.5;
+                if (speed > maxSpeed) {
+                    vx = (vx / speed) * maxSpeed;
+                    vy = (vy / speed) * maxSpeed;
+                }
+
+                ballX = b.x + nx * (b.r + r + 1);
+                ballY = b.y + ny * (b.r + r + 1);
+                safeVibrate(20);
+            }
+
+            function reflectFromTarget(t) {
+                const centerX = t.x + t.w / 2;
+                const centerY = t.y + t.h / 2;
+                const dx = ballX - centerX;
+                const dy = ballY - centerY;
+
+                if (Math.abs(dx / t.w) > Math.abs(dy / t.h)) {
+                    vx *= -1;
+                } else {
+                    vy *= -1;
+                }
+            }
+
+            function animate() {
+                if (!running) return;
+
+                ballX += vx;
+                ballY += vy;
+
+                // walls
+                if (ballX - r <= 32) {
+                    ballX = 32 + r;
+                    vx *= -1;
+                }
+                if (ballX + r >= getW() - 32) {
+                    ballX = getW() - 32 - r;
+                    vx *= -1;
+                }
+                if (ballY - r <= 70) {
+                    ballY = 70 + r;
+                    vy *= -1;
+                }
+
+                // paddle
+                if (
+                    vy > 0 &&
+                    circleRectCollision(ballX, ballY, r, paddleX, paddleY, paddleW, paddleH)
+                ) {
+                    ballY = paddleY - r - 1;
+
+                    const hit = (ballX - (paddleX + paddleW / 2)) / (paddleW / 2);
+                    const speed = Math.min(9, Math.sqrt(vx * vx + vy * vy) + 0.2);
+                    vx = hit * 6.6;
+                    vy = -Math.sqrt(Math.max(12, speed * speed - vx * vx));
+
+                    if (Math.abs(vx) < 1.1) {
+                        vx = vx >= 0 ? 1.1 : -1.1;
+                    }
+                }
+
+                // bumpers
+                for (const b of bumpers) {
+                    if (circleCircleCollision(ballX, ballY, r, b.x, b.y, b.r)) {
+                        reflectFromBumper(b);
+                        break;
+                    }
+                }
+
+                // targets
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    if (!t.alive) continue;
+
+                    if (circleRectCollision(ballX, ballY, r, t.x, t.y, t.w, t.h)) {
+                        if (t.real) {
+                            nextLevel();
+                            return;
+                        } else {
+                            reflectFromTarget(t);
+                            t.alive = false;
+                            t.el.remove();
+                            safeVibrate(15);
+                            break;
+                        }
+                    }
+                }
+
+                // bottom lose
+                if (ballY - r > getH()) {
+                    safeVibrate([70, 40, 70]);
+                    resetBall();
+                }
+
+                drawBall();
+                raf = requestAnimationFrame(animate);
+            }
+
+            function onResize() {
+                layoutBumpers();
+                paddleY = getH() - 78;
+                paddleX = clamp(paddleX, 0, getW() - paddleW);
+                if (ballY > getH() || ballX > getW()) resetBall();
+                drawPaddle();
+                drawBall();
+            }
+
+            layoutBumpers();
+            drawPaddle();
+            drawBall();
+            game.addEventListener('mousemove', onMouseMove);
+            game.addEventListener('touchmove', onTouchMove, { passive: false });
+            window.addEventListener('resize', onResize);
+            animate();
+
+            return () => {
+                running = false;
+                cancelAnimationFrame(raf);
+                game.removeEventListener('mousemove', onMouseMove);
+                game.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('resize', onResize);
+            };
+        }
+
+        // ---------------- LEVEL 5 ----------------
+        function level5(app) {
+            const div = document.createElement('div');
+            div.className = 'center';
+
+            const guide = document.createElement('div');
+            guide.className = 'tiny-note';
+            //guide.innerText = '각 글자를 하나씩 멈춰서 “다” + “음”을 만든 뒤, 합쳐진 버튼을 눌러라';
+            div.appendChild(guide);
+
+            const row = document.createElement('div');
+            row.className = 'level5-row';
+            div.appendChild(row);
+
+            const leftSlot = document.createElement('div');
+            leftSlot.className = 'slot';
+            row.appendChild(leftSlot);
+
+            const mergeWrap = document.createElement('div');
+            mergeWrap.className = 'merge-wrap';
+            row.appendChild(mergeWrap);
+
+            const rightSlot = document.createElement('div');
+            rightSlot.className = 'slot';
+            row.appendChild(rightSlot);
+
+            const leftChar = document.createElement('div');
+            leftChar.className = 'char';
+            leftSlot.appendChild(leftChar);
+
+            const rightChar = document.createElement('div');
+            rightChar.className = 'char';
+            rightSlot.appendChild(rightChar);
+
+            const mergedLeft = document.createElement('div');
+            mergedLeft.className = 'merge-char hidden';
+            mergedLeft.style.left = '30px';
+            mergedLeft.style.top = '14px';
+            mergeWrap.appendChild(mergedLeft);
+
+            const mergedRight = document.createElement('div');
+            mergedRight.className = 'merge-char hidden';
+            mergedRight.style.left = '130px';
+            mergedRight.style.top = '14px';
+            mergeWrap.appendChild(mergedRight);
+
+            const actionBtn = document.createElement('button');
+            actionBtn.innerText = 'SET';
+            actionBtn.classList.add('small');
+            div.appendChild(actionBtn);
+
+            app.appendChild(div);
+
+            const leftArr = ['가', '나', '다', '라'];
+            const rightArr = ['음', '오', '아', '예'];
+
+            let leftIndex = 0;
+            let rightIndex = 0;
+            let leftInterval = null;
+            let rightInterval = null;
+            let leftStopped = false;
+            let rightStopped = false;
+            let mergedDone = false;
+
+            function spinLeft() {
+                leftInterval = setInterval(() => {
+                    leftIndex = Math.floor(Math.random() * leftArr.length);
+                    leftChar.innerText = leftArr[leftIndex];
+                }, 100);
+            }
+
+            function spinRight() {
+                rightInterval = setInterval(() => {
+                    rightIndex = Math.floor(Math.random() * rightArr.length);
+                    rightChar.innerText = rightArr[rightIndex];
+                }, 100);
+            }
+
+            function resetMergeVisual() {
+                mergedDone = false;
+                mergedLeft.classList.add('hidden');
+                mergedRight.classList.add('hidden');
+                mergedLeft.style.left = '30px';
+                mergedLeft.style.top = '14px';
+                mergedRight.style.left = '130px';
+                mergedRight.style.top = '14px';
+                mergedLeft.style.transform = 'scale(1)';
+                mergedRight.style.transform = 'scale(1)';
+                leftSlot.style.opacity = '1';
+                rightSlot.style.opacity = '1';
+            }
+
+            function fullReset() {
+                clearInterval(leftInterval);
+                clearInterval(rightInterval);
+                leftStopped = false;
+                rightStopped = false;
+                actionBtn.innerText = 'SET';
+                actionBtn.classList.add('small');
+                actionBtn.onclick = null;
+                resetMergeVisual();
+                spinLeft();
+                spinRight();
+            }
+
+            function mergeToNextButton() {
+                mergedDone = true;
+
+                mergedLeft.innerText = leftArr[leftIndex];
+                mergedRight.innerText = rightArr[rightIndex];
+                mergedLeft.classList.remove('hidden');
+                mergedRight.classList.remove('hidden');
+
+                // 원래 슬롯은 약간 흐리게
+                leftSlot.style.opacity = '0.25';
+                rightSlot.style.opacity = '0.25';
+
+                requestAnimationFrame(() => {
+                    mergedLeft.style.left = '65px';
+                    mergedRight.style.left = '98px';
+                    mergedLeft.style.transform = 'scale(1.05)';
+                    mergedRight.style.transform = 'scale(1.05)';
+                });
+
+                setTimeout(() => {
+                    actionBtn.innerText = '다음';
+                    actionBtn.classList.remove('small');
+                    actionBtn.onclick = () => nextLevel();
+                }, 480);
+            }
+
+            function checkMatch() {
+                if (!(leftStopped && rightStopped)) return;
+
+                const leftOk = leftArr[leftIndex] === '다';
+                const rightOk = rightArr[rightIndex] === '음';
+
+                if (leftOk && rightOk) {
+                    mergeToNextButton();
+                } else {
+                    safeVibrate([50, 50, 50]);
+                    alert('틀림 ㅋㅋ');
+                    fullReset();
+                }
+            }
+
+            function stopLeft() {
+                if (leftStopped || mergedDone) return;
+                clearInterval(leftInterval);
+                leftStopped = true;
+                checkMatch();
+            }
+
+            function stopRight() {
+                if (rightStopped || mergedDone) return;
+                clearInterval(rightInterval);
+                rightStopped = true;
+                checkMatch();
+            }
+
+            leftChar.onclick = stopLeft;
+            rightChar.onclick = stopRight;
+
+            leftChar.ontouchstart = (e) => {
+                e.preventDefault();
+                stopLeft();
+            };
+            rightChar.ontouchstart = (e) => {
+                e.preventDefault();
+                stopRight();
+            };
+
+            fullReset();
+
+            return () => {
+                clearInterval(leftInterval);
+                clearInterval(rightInterval);
+            };
+        }
+
+        // ---------------- ENDING ----------------
+        function ending(app) {
+            const div = document.createElement('div');
+            div.className = 'center';
+
+            const msg = document.createElement('h1');
+            msg.innerText = '🎉 축하합니다!';
+            div.appendChild(msg);
+
+            const sub = document.createElement('div');
+            sub.className = 'tiny-note';
+            sub.innerText = '이제 다시 UX 지옥으로 돌아갈 수 있음';
+            div.appendChild(sub);
+
+            const btn = document.createElement('button');
+            btn.innerText = '처음부터';
+            btn.onclick = restartGame;
+            div.appendChild(btn);
+
+            app.appendChild(div);
+        }
+
+        render();
+    </script>
+</body>
+</html>

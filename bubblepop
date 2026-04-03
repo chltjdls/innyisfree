@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BUBBLE POP</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            transition: opacity 2s ease;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 60%);
+            z-index: -1;
+        }
+
+        #intro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+            #intro .text {
+                color: white;
+                font-size: 28px;
+                text-align: center;
+                opacity: 0;
+                animation: fadeInOut 4s ease forwards;
+                text-shadow: 0 0 25px rgba(0,0,0,0.5);
+            }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        #ui {
+            position: fixed;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+
+        button {
+            margin: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        #shareBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            padding: 10px 16px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="bg1" class="bg"></div>
+    <div id="bg2" class="bg"></div>
+    <div class="overlay"></div>
+
+    <div id="intro">
+        <div class="text">
+            아무 생각 없이<br>비눗방울을 불어보세요
+        </div>
+    </div>
+
+    <div id="ui">
+        <button id="soundBtn">🔊 소리 켜기</button>
+        <div>클릭 / 터치해서 비눗방울 만들기</div>
+        <br />
+        <div>배경 변경:</div>
+        <button onclick="setTheme('sky')">☀️ 하늘</button>
+        <button onclick="setTheme('sunset')">🌇 노을</button>
+        <button onclick="setTheme('night')">🌙 밤</button>
+        <button onclick="setTheme('sea')">🌊 바다</button>
+        <br />
+        <div>모양 선택:</div>
+        <button onclick="setShape('circle')">⚪ 원</button>
+        <button onclick="setShape('heart')">❤️ 하트</button>
+        <button onclick="setShape('bear')">🐻 곰돌이</button>
+        <button onclick="setShape('square')">⬛ 네모</button>
+    </div>
+
+    <button id="shareBtn">공유</button>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        let soundEnabled = true;
+        const soundBtn = document.getElementById("soundBtn");
+        soundBtn.addEventListener("click", () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? "🔊 소리 켜기" : "🔇 소리 끄기";
+        });
+
+        let currentShape = 'circle';
+        function setShape(shape) { currentShape = shape; }
+
+        let bubbles = [];
+        let pops = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        // 배경
+        let currentBg = 1;
+        const themes = {
+            sky: "linear-gradient(to top, #89f7fe, #66a6ff)",
+            sunset: "linear-gradient(to top, #f6d365, #fda085)",
+            night: "linear-gradient(to top, #141e30, #243b55)",
+            sea: "linear-gradient(to top, #2E3192, #1BFFFF)"
+        };
+        document.getElementById("bg1").style.background = themes.sky;
+        function setTheme(theme) {
+            const next = currentBg === 1 ? 2 : 1;
+            const currentEl = document.getElementById("bg" + currentBg);
+            const nextEl = document.getElementById("bg" + next);
+            nextEl.style.background = themes[theme];
+            nextEl.offsetHeight;
+            nextEl.style.opacity = 1;
+            currentEl.style.opacity = 0;
+            currentBg = next;
+        }
+
+        // intro 제거
+        document.getElementById("intro").addEventListener("click", e => { e.currentTarget.style.display = "none"; });
+
+        // 공유
+        document.getElementById("shareBtn").onclick = async () => {
+            const url = location.href;
+            if (navigator.share) {
+                await navigator.share({ title: "비눗방울", text: "힐링하러 와", url });
+            } else {
+                navigator.clipboard.writeText(url); alert("복사됨!");
+            }
+        };
+
+        // 사운드
+        function playPop() {
+            if (!soundEnabled) return;
+            const ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
+            const duration = 0.15;
+            // 톤
+            const osc = ctxAudio.createOscillator();
+            const gain = ctxAudio.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(600, ctxAudio.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, ctxAudio.currentTime + duration);
+            gain.gain.setValueAtTime(0.2, ctxAudio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctxAudio.currentTime + duration);
+            osc.connect(gain); gain.connect(ctxAudio.destination);
+            osc.start(); osc.stop(ctxAudio.currentTime + duration);
+            // 노이즈
+            const buffer = ctxAudio.createBuffer(1, ctxAudio.sampleRate * duration, ctxAudio.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
+            const noise = ctxAudio.createBufferSource();
+            noise.buffer = buffer;
+            const noiseGain = ctxAudio.createGain();
+            noiseGain.gain.setValueAtTime(0.15, ctxAudio.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, ctxAudio.currentTime + duration);
+            noise.connect(noiseGain); noiseGain.connect(ctxAudio.destination);
+            noise.start();
+        }
+
+
+        //
+        // 버블 생성
+        function createBubble(x, y) {
+            const big = Math.random() < 0.1;
+            const rainbow = Math.random() < 0.1;
+            bubbles.push({
+                x, y, r: big ? Math.random() * 40 + 40 : Math.random() * 20 + 10, speedY: Math.random() + 0.5,
+                drift: (Math.random() - 0.5) * 0.5, alpha: 1, rainbow, hue: Math.random() * 360, shape: currentShape
+            });
+        }
+
+        // 터짐
+        function createPop(x, y) {
+            pops.push({ x, y, r: 0, a: 1 });
+            playPop();
+            canvas.style.transform = "scale(1.01)";
+            setTimeout(() => canvas.style.transform = "scale(1)", 100);
+        }
+
+        // 이벤트
+        canvas.addEventListener("click", e => {
+            bubbles.forEach((b, i) => {
+                const dx = b.x - e.clientX, dy = b.y - e.clientY;
+                if (Math.sqrt(dx * dx + dy * dy) < b.r) {
+                    createPop(b.x, b.y); bubbles.splice(i, 1);
+                }
+            });
+            for (let i = 0; i < 5; i++) createBubble(e.clientX, e.clientY);
+        });
+        canvas.addEventListener("touchmove", e => {
+            const t = e.touches[0];
+            createBubble(t.clientX, t.clientY);
+        });
+
+        // 애니메이션
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            bubbles.forEach((b, i) => {
+                b.y -= b.speedY; b.x += b.drift; b.hue += 1;
+                if (b.shape === "circle") {
+                    const g = ctx.createRadialGradient(b.x - b.r / 3, b.y - b.r / 3, b.r / 5, b.x, b.y, b.r);
+                    if (b.rainbow) { g.addColorStop(0, "white"); g.addColorStop(1, `hsla(${b.hue},100%,70%,0.6)`); }
+                    else { g.addColorStop(0, "rgba(255,255,255,0.9)"); g.addColorStop(1, "rgba(173,216,230,0.4)"); }
+                    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+                } else if (b.shape === "heart") {
+                    const s = b.r / 20; ctx.beginPath(); ctx.moveTo(b.x, b.y);
+                    ctx.bezierCurveTo(b.x, b.y - 3 * s, b.x - 5 * s, b.y - 5 * s, b.x - 10 * s, b.y - 2 * s);
+                    ctx.bezierCurveTo(b.x - 15 * s, b.y + 3 * s, b.x, b.y + 10 * s, b.x, b.y + 15 * s);
+                    ctx.bezierCurveTo(b.x, b.y + 10 * s, b.x + 15 * s, b.y + 3 * s, b.x + 10 * s, b.y - 2 * s);
+                    ctx.bezierCurveTo(b.x + 5 * s, b.y - 5 * s, b.x, b.y - 3 * s, b.x, b.y);
+                    ctx.fillStyle = b.rainbow ? `hsla(${b.hue},100%,70%,0.7)` : 'rgba(255,192,203,0.7)'; ctx.fill();
+                } else if (b.shape === "square") {
+                    ctx.beginPath(); ctx.rect(b.x - b.r, b.y - b.r, 2 * b.r, 2 * b.r);
+                    ctx.fillStyle = b.rainbow ? `hsla(${b.hue},100%,70%,0.6)` : 'rgba(173,216,230,0.4)'; ctx.fill();
+                } else if (b.shape === "bear") {
+                    const s = b.r / 20;
+                    ctx.fillStyle = b.rainbow ? `hsla(${b.hue},100%,70%,0.6)` : 'rgba(139,69,19,0.6)';
+                    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(b.x - b.r * 0.6, b.y - b.r * 0.6, b.r * 0.4, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(b.x + b.r * 0.6, b.y - b.r * 0.6, b.r * 0.4, 0, Math.PI * 2); ctx.fill();
+                }
+                if (b.y < -50) bubbles.splice(i, 1);
+            });
+
+            pops.forEach((p, i) => {
+                p.r += 2; p.a -= 0.03;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255,255,255,${p.a})`; ctx.stroke();
+                if (p.a <= 0) pops.splice(i, 1);
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+
+</body>
+</html>

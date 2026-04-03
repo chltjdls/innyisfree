@@ -10,7 +10,14 @@
     <link rel="stylesheet" href="style.css" />
 
     <title>Inny is Free</title>
-
+    <style>
+        .thumb {
+            width: 100%;
+            height: 150px; 
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -193,21 +200,24 @@
                     const link = item.link;
                     const description = item.description;
 
-                    // description에서 첫 번째 이미지 추출
-                    const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i);
-                    const thumbnail = imgMatch ? imgMatch[1] : null;
+                    // description에서 첫 번째 이미지 추출 (src나 data-src)
+                    let imgMatch = description.match(/<img[^>]+(?:src|data-src)="([^">]+)"/i);
+                    let thumbnail = imgMatch ? imgMatch[1] : null;
+
+                    // 이미지 없으면 기본 이미지로 대체
+                    if (!thumbnail) {
+                        thumbnail = "https://via.placeholder.com/300x150?text=No+Image";
+                    }
 
                     const card = document.createElement("a");
                     card.className = "blog-card";
                     card.href = link;
                     card.target = "_blank";
                     card.innerHTML = `
-                        <div class="thumb" style="background-image: url('${thumbnail || ""}');">
-                            ${thumbnail ? "" : "🖼 썸네일 없음"}
-                        </div>
-                        <h3>${title}</h3>
-                        <p>${description.replace(/<[^>]+>/g, "").slice(0, 80)}...</p>
-                    `;
+                <div class="thumb" style="background-image: url('${thumbnail}');"></div>
+                <h3>${title}</h3>
+                <p>${description.replace(/<[^>]+>/g, "").slice(0, 80)}...</p>
+            `;
                     container.appendChild(card);
                 }
             })

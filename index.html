@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +20,7 @@
             <a href="about.html">TASTE ROAD</a>
             <a href="#introduce">INTRODUCE</a>
             <a href="#blog">BLOG</a>
-            <a href="https://chltjdls.github.io/innyisfree/bubblepop.html">BUBBLE</a>
+            <a href="#bubblepop">BUBBLE</a>
 
         </nav>
     </header>
@@ -27,9 +28,9 @@
     <section class="hero">
         <h1>오늘도 화이팅</h1>
         <p>여기 구경좀 해주시죠?</p>
-       <a href="stress.html" class="cta-button">Play Game</a>
+        <a href="stress.html" class="cta-button">Play Game</a>
     </section>
-    
+
     <section id="introduce" class="features">
         <div class="feature-card">
             <div class="feature-card">
@@ -178,21 +179,21 @@
     </script>
     <script>
         const blogId = "sein0917";
-        const feedUrl = `https://api.allorigins.win/raw?url=https://blog.rss.naver.com/${blogId}.xml`;
+        const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://blog.rss.naver.com/${blogId}.xml`;
 
         fetch(feedUrl)
-            .then(res => res.text())
-            .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+            .then(res => res.json())
             .then(data => {
-                const items = data.querySelectorAll("item");
+                const items = data.items;
                 const container = document.getElementById("blog-grid");
 
                 for (let i = 0; i < Math.min(4, items.length); i++) {
                     const item = items[i];
-                    const title = item.querySelector("title").textContent;
-                    const link = item.querySelector("link").textContent;
-                    const description = item.querySelector("description").textContent;
+                    const title = item.title;
+                    const link = item.link;
+                    const description = item.description;
 
+                    // description에서 첫 번째 이미지 추출
                     const imgMatch = description.match(/<img[^>]+src="([^">]+)"/i);
                     const thumbnail = imgMatch ? imgMatch[1] : null;
 

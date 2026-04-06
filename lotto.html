@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sporttoto</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+        }
+
+        h1 {
+            color: #d2001a;
+            text-align: center;
+        }
+
+        #ticketContainer {
+            position: relative;
+            width: 300px;
+            height: 150px;
+            border: 3px solid #d2001a;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        #ticketText {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            color: #0077c0;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #d2001a;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background-color: #a10015;
+            }
+    </style>
+</head>
+<body>
+
+    <h1>서인로또방</h1>
+
+    <div id="ticketContainer">
+        <div id="ticketText">
+            🎟️ 경기일: 2026-04-06<br>LG vs SSG ⚾<br>티켓 당첨!
+        </div>
+        <canvas id="scratch" width="300" height="150"></canvas>
+    </div>
+
+    <button id="resetBtn">다시 긁기</button>
+
+    <script>
+        const canvas = document.getElementById('scratch');
+        const ctx = canvas.getContext('2d');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function initScratch() {
+            // 은색 스크래치 레이어 초기화
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'silver';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        let isDrawing = false;
+
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseleave', () => isDrawing = false);
+
+        canvas.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(e.offsetX, e.offsetY, 15, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+
+        resetBtn.addEventListener('click', initScratch);
+
+        // 초기화
+        initScratch();
+    </script>
+
+</body>
+</html>
